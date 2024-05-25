@@ -15,6 +15,7 @@ hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 # It will run in infinite loop unless the user does the specified action in the last if block
 whileLoopIterator = True
 amt = 0
+powerBtn = False
 
 while(whileLoopIterator):
     ret,frame = capture.read() # reading the capture
@@ -29,25 +30,19 @@ while(whileLoopIterator):
 
     # do something if amount of human detected change
     if currentAmt > amt:
+        if amt == 0:
+            sleep(0.5)
+            print("Turn on")
+        print("Amount increased from", amt, "to", currentAmt)
         amt = currentAmt
-        print("Amount increased to", amt)
+        
     elif currentAmt < amt:
-        amt = currentAmt
-        print("Amount decreased to", amt)
-
-    # if the current amount of human detected is zero, sleep for 10 seconds
-    # then try to detect again, if still zero, turn off
-    if currentAmt == 0:
-        amt = currentAmt
-        sleep(10)
         if currentAmt == 0:
-            amt = currentAmt
+            sleep(0.5)
             print("Turn off")
-    # else, turn on
-    elif currentAmt > 0:
+        print("Amount decreased from", amt, "to", currentAmt)
         amt = currentAmt
-        print("Turn on")
-
+        
     # creating white block to detect human in the feed
     humans = np.array([[x, y, x + w, y + h] for (x, y, w, h) in humans])
     for (xA, yA, xB, yB) in humans:
@@ -55,7 +50,7 @@ while(whileLoopIterator):
         cv2.rectangle(frame, (xA, yA), (xB, yB), (255, 255, 255), 2)
 
     cv2.imshow('frame',frame) # displaying the frame
-    sleep(5) # bring the camera to sleep for 2 seconds for each loop
+    sleep(0.5) # bring the camera to sleep for 2 seconds for each loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
         # breaking the loop if the user types q
         # note that the video window must be highlighted!
