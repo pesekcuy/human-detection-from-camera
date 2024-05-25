@@ -37,10 +37,10 @@ while(whileLoopIterator):
 
     # if the current amount of human detected is zero, sleep for 10 seconds
     # then try to detect again, if still zero, turn off
-    if currentAmt = 0:
+    if currentAmt == 0:
         amt = currentAmt
         sleep(10)
-        if currentAmt = 0:
+        if currentAmt == 0:
             amt = currentAmt
             print("Turn off")
     # else, turn on
