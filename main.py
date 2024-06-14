@@ -1,60 +1,78 @@
-# Import the needed modules
+# Memuat modul yang dibutuhkan
 from time import sleep
+from os import system as execute
 import cv2
 import numpy as np
 
-# Start video capture from the camera with OpenCV
+# Membiarkan sistem sleep untuk menginisialisasi kamera
+sleep(2.5)
+
+# Memulai menangkap video dengan kamera
 cv2.startWindowThread()
 capture = cv2.VideoCapture(0)
 
-# Set the HOG-SVM people detector
+# Mengatur pendeteksian orang dengan HOG-SVM
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-# Start the while loop to detect human from camera feeds
-# It will run in infinite loop unless the user does the specified action in the last if block
-whileLoopIterator = True
-amt = 0
-powerBtn = False
+# Mengatur variabel yang dibutuhkan di dalam while loop
+whileLoopIterator = True # Selama bernilai True, while loop akan terus berjalan
+amt = 0 # Kondisi awal jumlah orang yaitu nol
 
+# While loop yg akan selalu berjalan
+# Sampai user menginterupsi dengan menekan huruf "Q" pada keyboard
 while(whileLoopIterator):
-    ret,frame = capture.read() # reading the capture
-    frame = cv2.resize(frame, (640, 480)) # resizing the capture
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # turning the capture into grayscale
+    ret,frame = capture.read() # membaca tangkapan video
+    frame = cv2.resize(frame, (480, 360)) # mengatur ukuran tangkapan video
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # mengubah tangkapan video menjadi hitam putih
 
-    # detection start
-    humans,_ =hog.detectMultiScale(frame, winStride=(12, 12), padding=(24, 24), scale=1.05)
+    # mulai mendeteksi
+    # nilai di dalam tuple `winStride` dan `padding` dapat dicoba-coba (trial & error)
+    humans,_ = hog.detectMultiScale(frame, winStride=(9, 9), padding=(11, 11), scale=1.05)
 
-    # count the current amount of human detected
+    # hitung jumlah orang yang saat ini terdeteksi
     currentAmt = len(humans)
 
-    # do something if amount of human detected change
+    # algoritma pengaturan AC saat mendeteksi peambahan jumlah orang
     if currentAmt > amt:
+        print("Jumlah orang bertambah")
         if amt == 0:
-            sleep(0.5)
-            print("Turn on")
-        print("Amount increased from", amt, "to", currentAmt)
+            # Jika jumlah orang sebelumnya 0 dan bertambah, nyalakan AC
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-on.txt")
+            print("Nyalakan AC")
+        else:
+            # Jika jumlah orang sebelumnya bukan 0 dan bertambah, turunkan temperatur
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-down.txt")
+            print("Suhu turun")
         amt = currentAmt
-        
+
+    # algoritma pengaturan AC saat mendeteksi pengurangan jumlah orang
     elif currentAmt < amt:
+        print("Jumlah orang berkurang")
         if currentAmt == 0:
-            sleep(0.5)
-            print("Turn off")
-        print("Amount decreased from", amt, "to", currentAmt)
+            # Jika jumlah orang menjadi 0, matikan AC
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-off.txt")
+            print("Matikan AC")
+        else:
+            # Jika jumlah orang berkurang tapi tidak menjadi 0, naikkan temperatur
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-up.txt")
         amt = currentAmt
-        
-    # creating white block to detect human in the feed
+
+    # memvisualisasikan pendeteksian orang dengan bingkai persegi
     humans = np.array([[x, y, x + w, y + h] for (x, y, w, h) in humans])
     for (xA, yA, xB, yB) in humans:
-        # display the detected boxes in the colour picture
+        # menggambar bingkai putih di sekitar orang yang terdeteksi
         cv2.rectangle(frame, (xA, yA), (xB, yB), (255, 255, 255), 2)
 
-    cv2.imshow('frame',frame) # displaying the frame
-    sleep(0.5) # bring the camera to sleep for 2 seconds for each loop
+    cv2.imshow('frame',frame) # menampilkan tangkapan video berikut pendeteksian orang jika ada
+
+    sleep(0.5) # membiarkan sistem sleep agar kamera tidak bekerja terlalu keras
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        # breaking the loop if the user types q
-        # note that the video window must be highlighted!
+        # menekan tombol "Q" pada keyboard akan menghentikan program ini
         whileLoopIterator = False
 
+# Mengakhiri tangkapan video dan menutup jendela visualisasi
+# Dieksekusi jika while loop di atas diinterupsi
 capture.release()
 cv2.destroyAllWindows()
