@@ -23,12 +23,19 @@ amt = 0 # Kondisi awal jumlah orang yaitu nol
 # Sampai user menginterupsi dengan menekan huruf "Q" pada keyboard
 while(whileLoopIterator):
     ret,frame = capture.read() # membaca tangkapan video
-    frame = cv2.resize(frame, (480, 360)) # mengatur ukuran tangkapan video
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # mengubah tangkapan video menjadi hitam putih
+    frame = cv2.resize(frame, (640, 480)) # mengatur ukuran tangkapan video
+
+    B, G, R = cv2.split(frame) # memecah kanal-kanal spektrum warna dari tangkapan video
+    # untuk meningkatkan kecerahan dan kontras
+    B = cv2.equalizeHist(B) # mengatur kanal spektrum warna biru
+    G = cv2.equalizeHist(G) # mengatur kanal spektrum warna hijau
+    R = cv2.equalizeHist(R) # mengatur kanal spektrum warna merah
+    frame = cv2.merge((B,G,R)) # menggabungkan ketiga kanal spektrum
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # mengubah menjadi hitam putih
 
     # mulai mendeteksi
     # nilai di dalam tuple `winStride` dan `padding` dapat dicoba-coba (trial & error)
-    humans,_ = hog.detectMultiScale(frame, winStride=(9, 9), padding=(11, 11), scale=1.05)
+    humans,_ = hog.detectMultiScale(frame, winStride=(9, 9), padding=(10, 10), scale=1.05)
 
     # hitung jumlah orang yang saat ini terdeteksi
     currentAmt = len(humans)
@@ -36,26 +43,31 @@ while(whileLoopIterator):
     # algoritma pengaturan AC saat mendeteksi peambahan jumlah orang
     if currentAmt > amt:
         print("Jumlah orang bertambah")
+
         if amt == 0:
             # Jika jumlah orang sebelumnya 0 dan bertambah, nyalakan AC
-            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-on.txt")
+            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-on.txt")
             print("Nyalakan AC")
         else:
             # Jika jumlah orang sebelumnya bukan 0 dan bertambah, turunkan temperatur
-            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-down.txt")
+            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-down.txt")
             print("Suhu turun")
+
         amt = currentAmt
 
     # algoritma pengaturan AC saat mendeteksi pengurangan jumlah orang
     elif currentAmt < amt:
         print("Jumlah orang berkurang")
+
         if currentAmt == 0:
             # Jika jumlah orang menjadi 0, matikan AC
-            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-off.txt")
+            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-off.txt")
             print("Matikan AC")
         else:
             # Jika jumlah orang berkurang tapi tidak menjadi 0, naikkan temperatur
-            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-up.txt")
+            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-up.txt")
+            print("Suhu naik")
+
         amt = currentAmt
 
     # memvisualisasikan pendeteksian orang dengan bingkai persegi
