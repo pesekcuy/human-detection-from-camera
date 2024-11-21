@@ -1,11 +1,11 @@
 # Memuat modul yang dibutuhkan
 from time import sleep
-from os import system as execute
+#from os import system as execute
 import cv2
 import numpy as np
 
 # Membiarkan sistem sleep untuk menginisialisasi kamera
-sleep(2.5)
+sleep(1.5)
 
 # Memulai menangkap video dengan kamera
 cv2.startWindowThread()
@@ -14,6 +14,7 @@ capture = cv2.VideoCapture(0)
 # Mengatur pendeteksian orang dengan HOG-SVM
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+#hog.setSVMDetector(cv2.HOGDescriptor_getDaimlerPeopleDetector())
 
 # Mengatur variabel yang dibutuhkan di dalam while loop
 whileLoopIterator = True # Selama bernilai True, while loop akan terus berjalan
@@ -23,19 +24,19 @@ amt = 0 # Kondisi awal jumlah orang yaitu nol
 # Sampai user menginterupsi dengan menekan huruf "Q" pada keyboard
 while(whileLoopIterator):
     ret,frame = capture.read() # membaca tangkapan video
-    frame = cv2.resize(frame, (640, 480)) # mengatur ukuran tangkapan video
+    frame = cv2.resize(frame, (400, 300)) # mengatur ukuran tangkapan video
 
-    B, G, R = cv2.split(frame) # memecah kanal-kanal spektrum warna dari tangkapan video
+    #B, G, R = cv2.split(frame) # memecah kanal-kanal spektrum warna dari tangkapan video
     # untuk meningkatkan kecerahan dan kontras
-    B = cv2.equalizeHist(B) # mengatur kanal spektrum warna biru
-    G = cv2.equalizeHist(G) # mengatur kanal spektrum warna hijau
-    R = cv2.equalizeHist(R) # mengatur kanal spektrum warna merah
-    frame = cv2.merge((B,G,R)) # menggabungkan ketiga kanal spektrum
+    #B = cv2.equalizeHist(B) # mengatur kanal spektrum warna biru
+    #G = cv2.equalizeHist(G) # mengatur kanal spektrum warna hijau
+    #R = cv2.equalizeHist(R) # mengatur kanal spektrum warna merah
+    #frame = cv2.merge((B,G,R)) # menggabungkan ketiga kanal spektrum
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) # mengubah menjadi hitam putih
 
     # mulai mendeteksi
     # nilai di dalam tuple `winStride` dan `padding` dapat dicoba-coba (trial & error)
-    humans,_ = hog.detectMultiScale(frame, winStride=(9, 9), padding=(10, 10), scale=1.05)
+    humans,_ = hog.detectMultiScale(frame, winStride=(6, 6), padding=(9, 9), scale=1.02)
 
     # hitung jumlah orang yang saat ini terdeteksi
     currentAmt = len(humans)
@@ -46,11 +47,11 @@ while(whileLoopIterator):
 
         if amt == 0:
             # Jika jumlah orang sebelumnya 0 dan bertambah, nyalakan AC
-            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-on.txt")
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-on.txt")
             print("Nyalakan AC")
         else:
             # Jika jumlah orang sebelumnya bukan 0 dan bertambah, turunkan temperatur
-            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-down.txt")
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-down.txt")
             print("Suhu turun")
 
         amt = currentAmt
@@ -61,11 +62,11 @@ while(whileLoopIterator):
 
         if currentAmt == 0:
             # Jika jumlah orang menjadi 0, matikan AC
-            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-off.txt")
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-power-off.txt")
             print("Matikan AC")
         else:
             # Jika jumlah orang berkurang tapi tidak menjadi 0, naikkan temperatur
-            execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-up.txt")
+            #execute("ir-ctl -d /dev/lirc0 --send=/home/pesekcuy/remote/panasonic-temp-up.txt")
             print("Suhu naik")
 
         amt = currentAmt

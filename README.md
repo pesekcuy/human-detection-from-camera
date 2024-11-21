@@ -6,8 +6,7 @@ The recommended way to test this code is with Python's virtual environment featu
 
 - Clone this repo.
 - Create a virtual environment folder for your projects and activate it. For example to create `env` folder run `python3 -m venv env`. Activate it with `source env/bin/activate` (for UNIX-like systems like Linux or macOS) or `.\env\Scripts\activate.bat` if you`re on Windows.
-- Copy the `main.py` and `requirements.txt` files in the repo folder to the virtual environment folder you've created.
-- Change directory to the virtual environment folder (in this case, `env`).
+- Change directory to the cloned repo (`./human-detection-from-camera`).
 - Install the requirements with `pip install -r requirements.txt`.
 - Run the code with `python main.py`
 
